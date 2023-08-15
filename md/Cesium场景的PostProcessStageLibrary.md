@@ -1,157 +1,53 @@
-# Cesium 中的 PostProcessStageLibrary 库介绍(2)
+# Cesium 中的 PostProcessStageLibrary 库介绍(2) - 自定义PostProcessStage后期处理
 
 > Cesium.js 的 PostProcessStageLibrary 是一个用于创建和应用后期处理效果的库。
->
+> Cesium.js 不仅内置相应的后期处理效果，也提供了相应API和属性，方便用户自定义PostProcessStage后期处理。
 > 以下是我整理记录的相关资料，帮助自己更好地接收了解 Cesium 中的后期处理(Post Processing)。
 > 
-> - [查看地址](https://cesium-post-process.vercel.app/)
-> - [仓库地址](https://github.com/WaterSeeding/CesiumPostProcess)
+> - [查看地址](https://cesium-custom-post-process.vercel.app/)
+> - [仓库地址](https://github.com/WaterSeeding/CesiumCustomPostProcess)
 
 <br />
 
-## 介绍
+## PostProcessStage介绍
 
-PostProcessStageLibrary 库提供了一组预定义的后期处理效果，开发者可以使用这些效果来轻松地增强或修改 Cesium.js 应用程序中的渲染效果，并创造出更加逼真和引人注目的视觉感观。
-
-![后期处理](./Cesium场景的PostProcessStageLibrary/12.png)
-
-如上图所示，包含：
-
-- Bloom（泛光）
-- FXAA（快速近似抗锯齿）
-- Ambient Occlusion（环境遮蔽）
-- Depth of Field（景深）
-- Brightness (明亮度)
-- HDR（高动态范围）
-- Tone Mapping（色调映射）
-- ...
-
-一般的后期处理效果（如：景深、明亮度），有提供相应的`PostProcessStageLibrary`处理函数，但是某些后期处理效果（如：Bloom、FXAA、Ambient Occlusion），却是内置在`viewer.scene.postProcessStages`（初次执行的阶段渲染到的输出纹理），不需要添加额外的`PostProcessStage`或`PostProcessStageComposite`。
-
-<br />
-
-## Bloom（泛光）
-
-> Cesium 场景默认不开启（enabled 为 false）
-
-![后期处理](./Cesium场景的PostProcessStageLibrary/1.png)
-
-<br />
-
-### 说明
-
-bloom 效果的后期处理效果，添加发光效果，使明亮区域更亮，使黑暗区域更暗。
-启用后，此阶段将在所有其他阶段之前执行。
-
-<br />
-
-### uniforms
-
-| 参数       | 类型    | 描述                                                                                              |
-| ---------- | ------- | ------------------------------------------------------------------------------------------------- |
-| glowOnly   | boolean | （默认值为 false）<br> 当 true 时，将仅显示发光效果。<br> 当 false 时，发光将被添加到输入纹理中。 |
-| contrast   | number  | 对比度，[-255.0， 255.0] 范围内的标量值（默认值为 128.0）                                         |
-| brightness | number  | 明亮度（ -0.3）                                                                                   |
-| delta      | number  | 计算高斯滤波器的权重（默认值为 1.0）                                                              |
-| sigma      | number  | 计算高斯滤波器的权重（默认值为 2.0 ）                                                             |
-| stepSize   | number  | 到下一个纹素的距离（默认值为 1.0 ）                                                               |
-
-<br />
-
-### 设置
-
-1. 获取场景 bloom 后期处理阶段：
-
-```tsx
-this.bloom = this.viewer.scene.postProcessStages.bloom;
-```
-
-2. 通过 GUI 可视化控件，修改 Bloom 属性值，来查看 Bloom 变化:
-
-```ts
-const reviseGui = (
-  bloom: Cesium.PostProcessStageComposite,
-  guiParams: BloomParamsInterface,
-) => {
-  bloom.enabled = Boolean(guiParams.show);
-  bloom.uniforms.glowOnly = Boolean(guiParams.glowOnly);
-  bloom.uniforms.contrast = Number(guiParams.contrast);
-  bloom.uniforms.brightness = Number(guiParams.brightness);
-  bloom.uniforms.delta = Number(guiParams.delta);
-  bloom.uniforms.sigma = Number(guiParams.sigma);
-  bloom.uniforms.stepSize = Number(guiParams.stepSize);
-};
-```
-
-<br />
-
-## Ambient Occlusion（环境遮蔽）
-
-> Cesium 场景默认不开启（enabled 为 false）
-
-![后期处理](./Cesium场景的PostProcessStageLibrary/3.png)
-
-<br />
-
-### 说明
-
-ambientOcclusion 效果的后期处理效果，设置场景环境光遮蔽。
-环境光遮蔽模拟来自环境光的阴影。当表面接收光线时，无论光线的位置如何，这些阴影将始终存在。
-启用后，此阶段将在所有其他阶段之前执行。
-
-<br />
-
-### uniforms
-
-| 参数                 | 类型    | 描述                                                                                                                                                            |
-| -------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| intensity            | number  | 用于以指数方式使阴影变亮或变暗。值越高，阴影越暗。（默认值为 3.0）                                                                                              |
-| bias                 | number  | 如果样本法线与相机矢量之间的点积小于此值，则采样将停止在当前方向上。（默认值为 0.1）                                                                            |
-| lengthCap            | number  | 如果从当前样本到第一个样本的距离大于此值，则取样将停止在当前方向上。（默认值为 0.26）                                                                           |
-| stepSize             | number  | 指示在当前方向上到下一个纹素样本的距离。（默认值为 1.95）                                                                                                       |
-| frustumLength        | number  | 如果当前片段与相机的距离大于此值，则不会计算该片段的环境光遮蔽。（默认值为 1000.0）                                                                             |
-| ambientOcclusionOnly | boolean | 这是一个有用的调试选项，用于查看更改统一值的效果。（默认值为 false）<br>当 true 时，只有生成的阴影被写入输出。<br>当 false 时，输入纹理使用环境光遮蔽进行调制。 |
-| delta                | number  | 计算高斯滤波器的权重（默认值为 1.0）                                                                                                                            |
-| sigma                | number  | 计算高斯滤波器的权重（默认值为 2.0 ）                                                                                                                           |
-| stepSize             | number  | 到下一个纹素的距离（默认值为 1.0 ）                                                                                                                             |
-
-<br />
-
-### 设置
-
-1. 获取场景 AmbientOcclusion 后期处理阶段：
-
-```tsx
-this.ambientOcclusion = this.viewer.scene.postProcessStages.ambientOcclusion;
-```
-
-2. 通过 GUI 可视化控件，修改 AmbientOcclusion 属性值，来查看 AmbientOcclusion 变化:
-
-```ts
-const reviseGui = (
-  ambientOcclusion: Cesium.PostProcessStageComposite,
-  guiParams: AmbientOcclusionParamsInterface,
-) => {
-  ambientOcclusion.enabled = Boolean(guiParams.show);
-  ambientOcclusion.uniforms.ambientOcclusionOnly = Boolean(
-    guiParams.ambientOcclusionOnly,
-  );
-  ambientOcclusion.uniforms.bias = Number(guiParams.bias);
-  ambientOcclusion.uniforms.blurStepSize = Number(guiParams.blurStepSize);
-  ambientOcclusion.uniforms.delta = Number(guiParams.delta);
-  ambientOcclusion.uniforms.frustumLength = Number(guiParams.frustumLength);
-  ambientOcclusion.uniforms.intensity = Number(guiParams.intensity);
-  ambientOcclusion.uniforms.lengthCap = Number(guiParams.lengthCap);
-  ambientOcclusion.uniforms.sigma = Number(guiParams.sigma);
-  ambientOcclusion.uniforms.stepSize = Number(guiParams.stepSize);
-};
-```
-
-<br />
+> PostProcessStage（后处理阶段）是一个用于图形后处理的组件。
 
 ![后期处理](./Cesium场景的PostProcessStageLibrary/1.gif)
 
-<br />
+在Cesium.js中，PostProcessStageLibrary和PostProcessStage之间存在一种依赖关系。
+简单来说，PostProcessStageLibrary是一个库，它提供了一些预定义的后处理效果和处理步骤，而PostProcessStage是用于创建和应用后处理效果的组件。
+
+[PostProcessStageLibrary提供了一系列预定义的后处理效果（如模糊、颜色校正、辉光等），这些效果都是通过内置的片段着色器实现的。
+这些预定义的效果可以直接在应用中使用，无需编写自定义的片段着色器。](https://juejin.cn/post/7267091417029476413)
+
+PostProcessStage则是用于创建自定义的后处理阶段的组件。
+使用PostProcessStage，开发人员可以编写自己的片段着色器来实现特定的图形处理操作或创建自定义的后处理效果。
+
+因此，开发人员可以根据自己的需求和创意来定制后处理效果:
+
+```tsx
+// 引入PostProcessStageLibrary
+let PostProcessStageLibrary = Cesium.PostProcessStageLibrary;
+
+// 创建一个PostProcessStageLibrary库内置后处理阶段
+let libraryPostProcessStage = new Cesium.PostProcessStage({
+  name: 'libraryPostProcessStage',
+  fragmentShader: PostProcessStageLibrary.createSepiaStage()
+});
+
+// 将PostProcessStageLibrary库内置后处理阶段添加到场景中
+viewer.scene.postProcessStages.add(libraryPostProcessStage);
+
+// 创建一个自定义后处理阶段
+let customPostProcessStage = new Cesium.PostProcessStage({
+  name: 'customPostProcessStage',
+  fragmentShader: PostProcessStageLibrary.createSepiaStage()
+});
+
+// 将自定义后处理阶段添加到场景中
+viewer.scene.postProcessStages.add(customPostProcessStage);
+```
 
 ## 相关资料
 
