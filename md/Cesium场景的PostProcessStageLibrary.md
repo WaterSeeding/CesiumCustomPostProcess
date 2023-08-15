@@ -9,11 +9,13 @@
 
 <br />
 
+![后期处理](./Cesium场景的PostProcessStageLibrary/1.gif)
+
 ## PostProcessStage介绍
 
 > PostProcessStage（后处理阶段）是一个用于图形后处理的组件。
 
-![后期处理](./Cesium场景的PostProcessStageLibrary/1.gif)
+![后期处理](./Cesium场景的PostProcessStageLibrary/8.png)
 
 在Cesium.js中，PostProcessStageLibrary和PostProcessStage之间存在一种依赖关系。
 简单来说，PostProcessStageLibrary是一个库，它提供了一些预定义的后处理效果和处理步骤，而PostProcessStage是用于创建和应用后处理效果的组件。
